@@ -1,0 +1,20 @@
+.vscode
+__pycache__
+venv
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# My options #
+##############
+env
+__pycache__
+migrations
+node_modules
