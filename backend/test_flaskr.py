@@ -68,16 +68,27 @@ class TriviaTestCase(unittest.TestCase):
                                    headers={'Content-type': 'application/x-www-form-urlencoded'})
         data = json.loads(res.data)
 
+        # check if q exist
+        ques = Question.query.filter(Question.id == q_item).one_or_none()
+
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['success'])
         self.assertTrue(data['id'])
+        # error check
+        self.assertEqual(ques, None)
+
 
     def test_post_questions_handler(self):
         response = self.client().post('/questions',
                                       json={'searchTerm': 'title'})
         data = json.loads(response.data)
 
+        # get created question
+        ques = Question.query.filter_by(id=data['id']).one_or_none()
+
         self.assertEqual(response.status_code, 200)
+        # error check
+        self.assertIsNotNone(ques)
 
     def test_get_questions_by_category(self):
         ques_id = db.session.query(Category.id).all()
@@ -93,6 +104,9 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+        # error check
+        self.assertNotEqual(len(data['questions']), 0)
+
     def random_questions(self):
 
         # send post request with category and previous questions
@@ -104,6 +118,9 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(data['question'])
+        # error check
+        self.assertNotEqual(data['question']['id'], 13)
+        self.assertNotEqual(data['question']['id'], 14)
 
     """
     TODO
