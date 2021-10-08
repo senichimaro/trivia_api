@@ -61,7 +61,8 @@ def create_app(test_config=None):
             return jsonify({
                 "categories": categories
             })
-        except:
+        except Exception as e:
+            print("Execption cause : ", e)
             abort(400)
 
     @app.route('/questions')
@@ -133,35 +134,6 @@ def create_app(test_config=None):
                 "id": ques_id
             })
 
-    @app.route('/question', methods=['POST'])
-    def create_question():
-        # '''
-        # @TODO:
-        # Create an endpoint to POST a new question,
-        # which will require the question and answer text,
-        # category, and difficulty score.
-
-        # TEST: When you submit a question on the "Add" tab,
-        # the form will clear and the question will appear at the end of the last page
-        # of the questions list in the "List" tab.
-        # '''
-        body = request.get_json()
-        pre_q = body.get('previous_questions')
-        quiz_cat = body.get('quiz_category')
-        if (quiz_cat['id'] == 0):
-            ques = Question.query.all()
-        else:
-            ques = Question.query.filter_by(category=quiz_cat['id']).all()
-
-        def q_random(item): return ques[random.randrange(0, len(item))]
-
-        print("q_random >>>> ", q_random(ques).format())
-        return jsonify({
-            'question': q_random(ques).format()
-        })
-
-    # ------------------- INCOMPLETE ¬ -------------------------
-
     @app.route('/questions', methods=['POST'])
     def post_questions_handler():
         # '''
@@ -180,11 +152,7 @@ def create_app(test_config=None):
             find_term = Question.query.filter(
                 Question.question.ilike(f'%{search_term}%')).all()
             result = [item.format() for item in find_term]
-            # for item in result:
-            #     category = Category.query.filter_by(id=item['category']).one_or_none()
-            #     item['category'] = category.type
 
-            print("category >>>> ", result)
             return jsonify({
                 'questions': result,
                 'totalQuestions': len(result),
@@ -211,7 +179,7 @@ def create_app(test_config=None):
 
                 return jsonify({
                     'success': True,
-                    'created': question.id,
+                    'id': question.id,
                     'question_created': question.question,
                     'questions': current_questions,
                     'total_questions': len(Question.query.all())
@@ -236,6 +204,7 @@ def create_app(test_config=None):
         if (cat is None):
             abort(400)
 
+        # print("cat >>>>>>>>>>>>>>>>>>", cat.id)
         selected = Question.query.filter_by(category=cat.id).all()
 
         paginate = paginate_query(request, selected)
@@ -249,7 +218,7 @@ def create_app(test_config=None):
             'total_questions': len(Question.query.all())
         })
 
-    @app.route('/')
+    @app.route('/quizzes', methods=['POST'])
     def random_questions():
         # '''
         # @TODO:
