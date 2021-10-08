@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import os
 from flask import Flask, json, request, abort, jsonify
 from sqlalchemy.sql.expression import select
@@ -59,6 +60,7 @@ def create_app(test_config=None):
             category_obj = Category.query.order_by('id').all()
             categories = {cat.id: cat.type for cat in category_obj}
             return jsonify({
+                "success": True,
                 "categories": categories
             })
         except Exception as e:
@@ -152,6 +154,9 @@ def create_app(test_config=None):
             find_term = Question.query.filter(
                 Question.question.ilike(f'%{search_term}%')).all()
             result = [item.format() for item in find_term]
+            
+            if( len(find_term) == 0):
+                abort(422)
 
             return jsonify({
                 'questions': result,
@@ -299,6 +304,15 @@ def create_app(test_config=None):
             "error":error,
             "message":"Unprocessable"
         }), 422
+
+    @app.errorhandler(500)
+    def internal(error):
+        return jsonify({
+            "success":False,
+            "status":500,
+            "error":error,
+            "message":"Internal Server Error"
+        }), 500
 
         
     # '''
