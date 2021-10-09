@@ -221,7 +221,7 @@ def create_app(test_config=None):
             except:
                 # abort unprocessable if exception
                 abort(422)
-
+    
     @app.route('/categories/<int:id>/questions')
     def get_questions_by_category(id):
         # '''
@@ -247,15 +247,18 @@ def create_app(test_config=None):
         selected = Question.query.filter_by(category=cat_id).all()
 
         paginate = paginate_query(request, selected)
-        for item in paginate[0]:
-            category = Category.query.filter_by(
-                id=item['category']).one_or_none()
-            item['category'] = category.type
+        # for item in paginate[0]:
+        #     category = Category.query.filter_by(
+        #         id=item['category']).one_or_none()
+        #     item['category'] = category.type
 
+        # print(' ||| > paginate >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ',paginate[0])
+        # print(' ||| > paginate >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ',cat.type)
         return jsonify({
             'success': True,
-            'questions': paginate,
-            'total_questions': len(Question.query.all())
+            'questions': paginate[0],
+            'total_questions': len(Question.query.all()),
+            'current_category': cat.type
         })
 
     @app.route('/quizzes', methods=['POST'])
