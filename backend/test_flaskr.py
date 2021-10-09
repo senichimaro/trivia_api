@@ -59,23 +59,23 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['total_questions'])
         self.assertTrue(data['currentCategory'])
 
-    # def test_delete_question(self):
-    #     ques_id = db.session.query(Question.id).all()
-    #     arrId = [item[0] for item in ques_id]
-    #     randId = randrange(len(arrId))
-    #     q_item = arrId[randId]
-    #     res = self.client().delete('/questions/{}'.format(q_item),
-    #                                headers={'Content-type': 'application/x-www-form-urlencoded'})
-    #     data = json.loads(res.data)
+    def test_delete_question(self):
+        ques_id = db.session.query(Question.id).all()
+        arrId = [item[0] for item in ques_id]
+        randId = randrange(len(arrId))
+        q_item = arrId[randId]
+        res = self.client().delete('/questions/{}'.format(q_item),
+                                   headers={'Content-type': 'application/x-www-form-urlencoded'})
+        data = json.loads(res.data)
 
-    #     # check if q exist
-    #     ques = Question.query.filter(Question.id == q_item).one_or_none()
+        # check if q exist
+        ques = Question.query.filter(Question.id == q_item).one_or_none()
 
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertTrue(data['success'])
-    #     self.assertTrue(data['id'])
-    #     # error check
-    #     self.assertEqual(ques, None)
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(data['success'])
+        self.assertTrue(data['id'])
+        # error check
+        self.assertEqual(ques, None)
 
     def test_post_questions_handler(self):
         response = self.client().post('/questions',
@@ -93,28 +93,22 @@ class TriviaTestCase(unittest.TestCase):
         # error check
         self.assertIsNotNone(ques)
 
-    # def test_get_questions_by_category(self):
-    #     ques_id = db.session.query(Category.id).all()
-    #     arrId = [item[0] for item in ques_id]
-    #     randId = randrange(len(arrId))
-    #     q_item = arrId[randId]
-    #     # print("q_item >>>>>>>>>>>>>>", q_item)
-    #     url = '/categories/' + str(q_item) + '/questions'
+    def test_get_questions_by_category(self):
+        ques_id = db.session.query(Category.id).all()
+        arrId = [item[0] for item in ques_id]
+        randId = randrange(len(arrId))
+        q_item = arrId[randId]
+        url = '/categories/' + str(q_item) + '/questions'
 
-    #     response = self.client().get(url)
-    #     # response = self.client().get('/categories/{}/questions'.format(q_item), headers={'Content-type': 'application/x-www-form-urlencoded'})
-    #     # print(' |||| > test: >>>>>>>>>>>>>>>>>>>>>>>>> response', response)
-    #     data = json.loads(response.data)
-    #     # print("data >>>>>>>>>>>>>>>>>> ", data)
+        response = self.client().get('/categories/{}/questions'.format(q_item), headers={'Content-type': 'application/x-www-form-urlencoded'})
+        data = json.loads(response.data)
 
-    #     self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-    #     # error check
-    #     self.assertNotEqual(len(data['questions']), 0)
+        # error check
+        self.assertNotEqual(len(data['questions']), 0)
 
     def random_questions(self):
-
-        # send post request with category and previous questions
         response = self.client().post('/quizzes',
                                       json={'previous_questions': [13, 14],
                                             'quiz_category': {'type': 'History', 'id': '3'}})
@@ -127,30 +121,49 @@ class TriviaTestCase(unittest.TestCase):
         self.assertNotEqual(data['question']['id'], 13)
         self.assertNotEqual(data['question']['id'], 14)
 
-    # def test_404_fail_delete_question(self):
-        # response = self.client().delete('/questions/123123')
-        # data = json.loads(response.data)
+    def test_fail_delete_question(self):
+        response = self.client().delete('/questions/123123')
+        data = json.loads(response.data)
 
-        # self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], False)
 
-    # def test_422_fail_post_questions_handler(self):
-    #     questions_before = Question.query.all()
-    #     # response = self.client().post('/questions', json={})
-    #     response = self.client().post('/questions')
-    #     data = json.loads(response.data)
+    def test_fail_create_question(self):
+        response = self.client().post('/questions', json={})
+        data = json.loads(response.data)
 
-    #     self.assertEqual(response.status_code, 422)
-    #     self.assertEqual(data['success'], False)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], False)
 
-    def test_422_fail_search_case_post_questions_handler(self):
+    def test_fail_search_term(self):
+        response = self.client().post('/questions', json={'searchTerm': 'abcdefghijk'})
+        data = json.loads(response.data)
 
-        # send post request with search term that should fail
-        response = self.client().post('/questions',
-                                      json={'searchTerm': 'abcdefghijk'})
-        # data = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], False)
 
-        self.assertEqual(response.status_code, 422)
-        # self.assertEqual(data['success'], False)
+    def test_fail_get_questions(self):
+        response = self.client().get('/questions?page=100')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], False)
+
+    def test_fail_questions_by_category(self):
+        response = self.client().get('/categories/10101/questions')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Bad Request')
+
+    def test_play_quiz_fails(self):
+        response = self.client().post('/quizzes', json={})
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Bad Request')
 
     """
     TODO
